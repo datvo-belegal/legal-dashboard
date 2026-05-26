@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Task Management System (Dashboard)</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        /* CSS Variables - Color Palette */
+        :root {
+            --bg-gradient: #f8fafc;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-gradient: linear-gradient(135deg, #4f46e5, #8b5cf6);
+            --success: #10b981;
+            --success-gradient: linear-gradient(135deg, #10b981, #059669);
+            --danger: #ef4444;
+            --danger-gradient: linear-gradient(135deg, #f43f5e, #e11d48);
+            --warning: #f59e0b;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Global Styles & Tối ưu hóa Font chữ đồng nhất */
+        body, p, a, span, div, h1, h2, h3, h4, h5, h6, .navbar-brand,
+        input, button, select, textarea, .form-control, .form-select, .btn, .badge, 
+        table.dataTable, table.dataTable th, table.dataTable td { 
+            font-family: 'Be Vietnam Pro', sans-serif !important; 
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        body {
+            font-size: 0.8rem; 
+            background: var(--bg-gradient);
+            color: var(--text-main); 
+            overflow-x: hidden;
+        }
+
+        /* Animations Keyframes */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+            100% { transform: translateY(0px); }
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .delay-1 { animation-delay: 0.05s; }
+        .delay-2 { animation-delay: 0.1s; }
+        .delay-3 { animation-delay: 0.15s; }
+        .delay-4 { animation-delay: 0.2s; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+        
+        /* Floating Navbar */
+        .navbar-container { padding: 0.5rem 1.5rem; position: sticky; top: 0px; z-index: 1000; }
+        .navbar { 
+            background: #ffffff; 
+            border-bottom: 1px solid var(--glass-border); 
+            box-shadow: var(--shadow-sm); padding: 0.5rem 1rem; 
+            border-radius: var(--radius-lg);
+        }
+        .navbar-brand { font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em; margin-bottom: 0; }
+        .navbar-brand i { background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.25rem; }
+
+        /* Cards Base */
+        .card { 
+            border: 1px solid var(--glass-border); border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-sm); background: #ffffff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-header { 
+            background-color: transparent; border-bottom: 1px solid var(--glass-border); 
+            font-weight: 700; font-size: 0.85rem; padding: 0.8rem 1.2rem; color: var(--text-main); 
+        }
+
+        /* Stat Cards */
+        .stat-card { 
+            background: #ffffff; padding: 1.2rem; border-radius: var(--radius-lg); 
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--glass-border);
+            transition: all 0.2s ease; position: relative; overflow: hidden; z-index: 1;
+        }
+        .stat-card::after { content: ''; position: absolute; right: -15px; top: -15px; width: 60px; height: 60px; border-radius: 50%; opacity: 0.05; z-index: -1; }
+        .stat-card.total::after { background: var(--primary); }
+        .stat-card.completed::after { background: var(--success); }
+        .stat-card.late::after { background: var(--danger); }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+        .stat-value { font-size: 1.75rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+        .stat-icon-wrapper { 
+            width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+            font-size: 1.25rem; color: white; transition: transform 0.3s ease;
+        }
+        .stat-card.total .stat-icon-wrapper { background: var(--primary-gradient); }
+        .stat-card.completed .stat-icon-wrapper { background: var(--success-gradient); }
+        .stat-card.late .stat-icon-wrapper { background: var(--danger-gradient); }
+
+        /* KPI Project Cards */
+        .project-drag-item { transition: transform 0.2s ease; }
+        .project-drag-item.dragging { opacity: 0.5; transform: scale(0.98); }
+        .project-card {
+            border: 1px solid var(--glass-border); border-radius: var(--radius-md);
+            background: #ffffff; cursor: pointer; overflow: hidden; padding: 1rem; position: relative;
+        }
+        .project-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+            background: var(--primary-gradient); opacity: 0; transition: opacity 0.2s;
+        }
+        .project-card:hover { border-color: #cbd5e1; box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .project-card:hover::before { opacity: 1; }
+        
+        .project-title { 
+            font-size: 0.95rem; font-weight: 700; color: #0f172a; padding-right: 20px; 
+            margin-top: 0.5rem; margin-bottom: 0.75rem !important; line-height: 1.4;
+            word-wrap: break-word; white-space: normal;
+        }
+        
+        .delete-btn {
+            position: absolute; top: 12px; right: 12px; cursor: pointer; transition: all 0.2s;
+            background: transparent; border: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; z-index: 10; opacity: 0; color: #94a3b8;
+        }
+        .project-card:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { color: var(--danger); transform: scale(1.1); }
+        
+        .progress { background-color: #f1f5f9; border-radius: 10px; overflow: hidden; height: 6px; }
+        .progress-bar { transition: width 0.5s ease; border-radius: 10px; }
+        
+        /* Category Header Design */
+        .category-header-wrapper {
+            background: transparent;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0.5rem 0.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .category-header-wrapper .cat-title-container {
+            display: flex; align-items: center; gap: 0.5rem; flex-grow: 1;
+        }
+        .category-header-wrapper h6 {
+            font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin: 0;
+            cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 4px; transition: background 0.2s;
+        }
+        .category-header-wrapper h6:hover { background: #e2e8f0; }
+        .category-header-wrapper .badge-count {
+            background: #f1f5f9; color: var(--text-muted); font-size: 0.7rem; font-weight: 700;
+            padding: 0.2rem 0.6rem; border-radius: 12px; border: 1px solid #e2e8f0;
+        }
+        .category-actions { opacity: 0; transition: opacity 0.2s; display: flex; gap: 4px; }
+        .category-header-wrapper:hover .category-actions { opacity: 1; }
+        .category-actions button { color: #94a3b8; background: transparent; padding: 0.2rem 0.5rem; font-size: 0.8rem; }
+        .category-actions button:hover { background: #f1f5f9; border-radius: 4px; }
+        .category-actions button.hover-primary:hover { color: var(--primary); background: #e0e7ff; }
+        .category-actions button.hover-danger:hover { color: var(--danger); background: #fee2e2; }
+        
+        .board-container { min-height: 80px; border-radius: var(--radius-lg); transition: background 0.2s; padding: 5px 0;}
+        .board-container.drag-over { background: #f8fafc; border: 2px dashed #cbd5e1; }
+
+        /* Upload Section */
+        .upload-section { border: 1px dashed #cbd5e1; background: #ffffff; padding: 1rem 1.5rem !important; }
+        .upload-section:hover { border-color: var(--primary); }
+        .upload-icon-box { background: #f8fafc; padding: 12px; border-radius: 8px; color: var(--primary); }
+        input[type="file"]::file-selector-button { background: #f1f5f9; border: 1px solid #e2e8f0; color: var(--text-main); padding: 0.4rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; margin-right: 1rem; transition: background 0.2s; }
+        input[type="file"]::file-selector-button:hover { background: #e2e8f0; }
+
+        /* Tables & Filters */
+        .table-container { padding: 1.2rem; background: #ffffff; }
+        .filter-section { background: #f8fafc; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem; border: 1px solid var(--glass-border); }
+        .form-label { color: var(--text-muted); font-weight: 700; text-transform: uppercase; font-size: 0.7rem; margin-bottom: 0.4rem; letter-spacing: 0.02em; }
+        .form-select, .form-control { border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem; padding: 0.4rem 0.8rem; background-color: #ffffff; font-weight: 500; }
+        .form-select:focus, .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); outline: none; }
+
+        /* DataTable */
+        table.dataTable { border-collapse: separate !important; border-spacing: 0 0 !important; width: 100%; }
+        table.dataTable thead th { background: #f8fafc; color: var(--text-muted); border-bottom: 2px solid #e2e8f0; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; padding: 0.8rem 1rem; }
+        table.dataTable tbody tr { background-color: #ffffff; transition: background 0.2s; border-bottom: 1px solid #f1f5f9; }
+        table.dataTable tbody tr:hover { background-color: #f8fafc; }
+        table.dataTable tbody td { padding: 0.8rem 1rem; vertical-align: middle; font-size: 0.8rem; border-bottom: 1px solid #f1f5f9; }
+        
+        /* Badges & Indicators */
+        .badge { font-weight: 600; padding: 0.4em 0.8em; border-radius: 4px; font-size: 0.7rem; letter-spacing: 0.01em; }
+        .bg-success { background: #ecfdf5 !important; color: #059669 !important; border: 1px solid #a7f3d0; }
+        .bg-primary { background: #eff6ff !important; color: #2563eb !important; border: 1px solid #bfdbfe; }
+        .bg-secondary { background: #f8fafc !important; color: #475569 !important; border: 1px solid #cbd5e1; }
+        .bg-danger { background: #fef2f2 !important; color: #dc2626 !important; border: 1px solid #fecaca; }
+        
+        .pulse-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+            background-color: currentColor; margin-right: 6px;
+            animation: pulse-ring 2s infinite;
+        }
+
+        /* Chart Wrapper */
+        .chart-wrapper { position: relative; height: 220px; width: 100%; padding: 0px; }
+
+        /* Unified Modal Styles */
+        .modal-content { border-radius: var(--radius-lg); border: none; background: #ffffff; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); }
+        .modal-header, .modal-footer { padding: 1rem 1.5rem; border-color: #f1f5f9; }
+        .modal-body { padding: 1.5rem; }
+        .btn { border-radius: 6px; font-weight: 600; font-size: 0.8rem; padding: 0.5rem 1.2rem; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); border: none; color: white;}
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(79,70,229,0.2); }
+        
+        .spacing-mb { margin-bottom: 1.5rem !important; }
+        .section-title { font-size: 1.1rem; color: var(--text-main); font-weight: 800; }
+        
+        /* Checklist Styles */
+        .checklist-item { transition: all 0.2s; border: 1px solid #e2e8f0; border-radius: 6px; background: white;}
+        .checklist-item:hover { border-color: #cbd5e1; }
+        .checklist-done .check-label { text-decoration: line-through; color: #94a3b8; }
+        .checklist-done { background: #f8fafc; border-color: #f1f5f9; }
+        
+        .divider-col { border-right: 1px solid #e2e8f0; }
+        @media (max-width: 768px) {
+            .divider-col { border-right: none; border-bottom: 1px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar-container">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid px-1">
+                <a class="navbar-brand text-dark" href="#">
+                    <i class="fas fa-layer-group me-2"></i> LegalOps <span style="font-weight: 400; color: var(--text-muted);">Workspace</span>
+                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-secondary d-flex align-items-center px-2 py-1 border-0 shadow-sm" style="font-size: 0.7rem;">
+                        <i class="fas fa-bolt me-1 text-warning"></i> v6.4 Pro
+                    </span>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div id="dashboardContent" class="container-fluid px-4 pb-4 pt-2">
+        
+        <div class="row spacing-mb animate-fade-up">
+            <div class="col-12">
+                <div class="card card-body upload-section flex-row align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3 upload-icon-box fs-5">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold text-dark">System Data Synchronization</h6>
+                            <p class="text-muted mb-0" style="font-size: 0.75rem;">Upload Excel (.xlsx) / CSV file to update dashboard database</p>
+                        </div>
+                    </div>
+                    <div style="width: 300px;">
+                        <input class="form-control form-control-sm" type="file" id="fileUpload" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row spacing-mb">
+            <div class="col-xl-4 col-md-4 mb-3 mb-md-0 animate-fade-up delay-1">
+                <div class="stat-card total">
+                    <div class="stat-info">
+                        <span class="stat-title">Total Tasks</span>
+                        <span class="stat-value" id="totalTasks">0</span>
+                    </div>
+                    <div class="stat-icon-wrapper"><i class="fas fa-tasks"></i></div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-4 mb-3 mb-md-0 animate-fade-up delay-2">
+                <div class="stat-card completed">
+                    <div class="stat-info">
+                        <span class="stat-title">Completed Tasks</span>
+                        <span class="stat-value" id="completedTasks">0</span>
+                    </div>
+                    <div class="stat-icon-wrapper"><i class="fas fa-check-double"></i></div>
+                </div>
+            </div>
+            <div class="col-xl-4 col-md-4 animate-fade-up delay-3">
+                <div class="stat-card late">
+                    <div class="stat-info">
+                        <span class="stat-title">Overdue / SLA Risk</span>
+                        <span class="stat-value" id="lateTasks">0</span>
+                    </div>
+                    <div class="stat-icon-wrapper"><i class="fas fa-exclamation-triangle"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row spacing-mb animate-fade-up delay-3">
+            <div class="col-lg-4 mb-3 mb-lg-0">
+                <div class="card h-100 border-0">
+                    <div class="card-header border-0"><i class="fas fa-chart-pie me-2 text-primary"></i> Allocation by Bucket</div>
+                    <div class="card-body pt-0"><div class="chart-wrapper"><canvas id="bucketChart"></canvas></div></div>
+                </div>
+            </div>
+            <div class="col-lg-4 mb-3 mb-lg-0">
+                <div class="card h-100 border-0">
+                    <div class="card-header border-0"><i class="fas fa-chart-bar me-2 text-primary"></i> Volume by Requestor</div>
+                    <div class="card-body pt-0"><div class="chart-wrapper"><canvas id="requestorChart"></canvas></div></div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card h-100 border-0">
+                    <div class="card-header border-0"><i class="fas fa-users me-2 text-primary"></i> Volume by PIC</div>
+                    <div class="card-body pt-0"><div class="chart-wrapper"><canvas id="picChart"></canvas></div></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row spacing-mb animate-fade-up delay-4">
+            <div class="col-12 mb-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold m-0 section-title">
+                    <i class="fas fa-columns me-2 text-primary"></i> Management Boards
+                </h5>
+                <div class="d-flex gap-3 align-items-center">
+                    <small class="text-muted fw-medium"><i class="fas fa-arrows-alt me-1 text-primary"></i> Kéo thả thẻ để chuyển nhóm</small>
+                    <button class="btn btn-primary btn-sm" onclick="openUnifiedModal('add')">
+                        <i class="fas fa-plus me-1"></i> Thêm Công việc
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div id="dynamicBoardsContainer" class="w-100"></div>
+                
+                <div class="mt-3">
+                    <button class="btn btn-sm text-primary fw-bold" onclick="addCategory()" style="border: 1px dashed var(--primary); background: transparent;">
+                        <i class="fas fa-plus-circle me-1"></i> Thêm nhóm danh mục mới
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row spacing-mb animate-fade-up delay-4">
+            <div class="col-12">
+                <div class="card table-container border-0">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold m-0 section-title">
+                            <i class="fas fa-list-ul me-2 text-primary"></i> Task Database
+                        </h5>
+                        <button class="btn btn-light btn-sm fw-medium border" id="resetFiltersBtn" style="background: white;">
+                            <i class="fas fa-sync-alt me-1 text-primary"></i> Reset Filters
+                        </button>
+                    </div>
+
+                    <div class="filter-section row align-items-end mb-3">
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="form-label">Bucket</label>
+                            <select id="filterBucket" class="form-select form-select-sm dt-filter"><option value="">All Buckets</option></select>
+                        </div>
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="form-label">PIC</label>
+                            <select id="filterPIC" class="form-select form-select-sm dt-filter"><option value="">All PICs</option></select>
+                        </div>
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="form-label">Requestor</label>
+                            <select id="filterReq" class="form-select form-select-sm dt-filter"><option value="">All Requestors</option></select>
+                        </div>
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="form-label">Completed Month</label>
+                            <select id="filterMonth" class="form-select form-select-sm dt-filter"><option value="">All Months</option></select>
+                        </div>
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="form-label">Start Date (Done)</label>
+                            <input type="date" id="filterStartDate" class="form-control form-control-sm dt-filter">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">End Date (Done)</label>
+                            <input type="date" id="filterEndDate" class="form-control form-control-sm dt-filter">
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="tasksTable" class="table w-100">
+                            <thead>
+                                <tr>
+                                    <th width="4%">#</th>
+                                    <th width="26%">Task Name</th>
+                                    <th width="10%">Bucket</th>
+                                    <th width="12%">PIC</th>
+                                    <th width="12%">Requestor</th>
+                                    <th width="10%" class="text-center">Start Date</th>
+                                    <th width="10%" class="text-center">Due Date</th>
+                                    <th width="10%" class="text-center">Done Date</th>
+                                    <th width="6%" class="text-center">SLA</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="unifiedTaskModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title fw-bold text-dark m-0" id="unifiedModalLabel">Chi tiết công việc</h5>
+                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="modalActionType">
+                    <input type="hidden" id="editProjectId">
+                    
+                    <div class="row">
+                        <div class="col-md-6 divider-col pe-md-4">
+                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-info-circle me-2"></i>Thông tin cơ bản</h6>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Tên công việc / Dự án <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm fw-medium" id="editProjectName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nhóm (Board) <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm fw-medium" id="editProjectType"></select>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Deadline</label>
+                                    <input type="text" class="form-control form-control-sm fw-medium" id="editProjectDeadline" placeholder="VD: Q1.2026">
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Trạng thái</label>
+                                    <select class="form-select form-select-sm fw-medium" id="editProjectStatus">
+                                        <option value="Done">Done</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Not Started">Not Started</option>
+                                        <option value="Risk">Risk / Overdue</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label m-0">Tỷ lệ hoàn thành</label>
+                                    <span class="badge bg-primary" id="progressValDisplay" style="min-width: 45px;">0%</span>
+                                </div>
+                                <input type="range" class="form-range" id="editProjectProgress" min="0" max="100">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Ghi chú tiến độ</label>
+                                <input type="text" class="form-control form-control-sm" id="editProjectNote" placeholder="VD: Đã duyệt vòng 1">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 ps-md-4 d-flex flex-column" id="unifiedDetailSection">
+                            <div class="mb-3 mt-3 mt-md-0">
+                                <h6 class="fw-bold text-primary mb-2"><i class="fas fa-align-left me-2"></i>Ghi chú chi tiết</h6>
+                                <textarea class="form-control form-control-sm" id="detailTaskNotesInput" rows="3" placeholder="Thêm mô tả hoặc link tài liệu..." onchange="updateTaskNotes()"></textarea>
+                            </div>
+                            
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold text-primary m-0"><i class="fas fa-tasks me-2"></i>Checklist hạng mục</h6>
+                                    <span class="badge bg-light text-muted border" id="checklistProgress">0/0</span>
+                                </div>
+                                
+                                <div class="progress mb-3" style="height: 6px;">
+                                    <div class="progress-bar bg-success" id="checklistProgressBar" role="progressbar" style="width: 0%;"></div>
+                                </div>
+
+                                <div class="input-group input-group-sm mb-3">
+                                    <input type="text" class="form-control" id="newChecklistInput" placeholder="Thêm đầu việc phụ (Enter)..." onkeypress="if(event.key === 'Enter') addChecklistItem()">
+                                    <button class="btn btn-primary" type="button" onclick="addChecklistItem()"><i class="fas fa-plus"></i></button>
+                                </div>
+                                
+                                <div id="checklistContainer" class="d-flex flex-column gap-2" style="max-height: 220px; overflow-y: auto; padding-right: 5px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 ps-md-4 d-flex flex-column justify-content-center align-items-center text-center bg-light rounded" id="unifiedNewTaskNotice" style="display: none; min-height: 200px; border: 1px dashed #cbd5e1;">
+                            <i class="fas fa-save text-muted mb-2 fs-3 opacity-50"></i>
+                            <p class="text-muted fw-medium m-0">Vui lòng điền Thông tin cơ bản<br>và <b class="text-primary">Lưu lại</b> trước khi tạo Checklist.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary btn-sm px-4" onclick="saveUnifiedProjectData()"><i class="fas fa-save me-2"></i>Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Dữ liệu mặc định ---
+        const defaultCategories = [
+            { id: 'cat-kpi', title: 'Key Projects & KPIs', icon: 'fa-star', color: 'text-warning' },
+            { id: 'cat-upcoming', title: 'Công việc / Dự án sắp tới', icon: 'fa-calendar-plus', color: 'text-info' },
+            { id: 'cat-clerical', title: 'Công việc Văn thư', icon: 'fa-inbox', color: 'text-success' },
+            { id: 'cat-other', title: 'Các công việc khác', icon: 'fa-ellipsis-h', color: 'text-secondary' }
+        ];
+
+        const defaultProjects = [
+            { id: 1, type: "cat-kpi", title: "1. Contract control & legal advisory process", status: "Done", progress: 100, note: "Done: 31/03/2026", deadline: "Q1.2026", icon: "fa-file-alt", checklist: [{text: "Review flow", isDone: true}, {text: "Approve policy", isDone: true}] },
+            { id: 2, type: "cat-kpi", title: "2. Review & build template contracts (NDA, Service Agreement)", status: "In Progress", progress: 70, note: "Progress: ~70%", deadline: "Q2.2026", icon: "fa-file-signature", checklist: [{text: "Draft NDA", isDone: true}, {text: "Draft Service Agreement", isDone: false}] },
+            { id: 3, type: "cat-upcoming", title: "Nghiên cứu ứng dụng AI trong rà soát hợp đồng", status: "Not Started", progress: 0, note: "Target: Q3", deadline: "Q3.2026", icon: "fa-robot", checklist: [] },
+            { id: 4, type: "cat-clerical", title: "Quản lý con dấu & phân loại công văn đến", status: "In Progress", progress: 50, note: "Daily task", deadline: "Ongoing", icon: "fa-stamp", checklist: [] },
+            { id: 5, type: "cat-other", title: "Hỗ trợ chuẩn bị hồ sơ cho phòng hành chính", status: "Risk", progress: 20, note: "Chờ tài liệu", deadline: "15/05/2026", icon: "fa-tasks", checklist: [] }
+        ];
+
+        let categories = [];
+        let currentProjects = [];
+        let dragSrcId = null; 
+        let currentDetailTaskId = null; 
+        
+        const unifiedModal = new bootstrap.Modal(document.getElementById('unifiedTaskModal'));
+
+        function loadData() {
+            const savedCats = localStorage.getItem('legalCategoriesData');
+            if (savedCats) { categories = JSON.parse(savedCats); } 
+            else { categories = JSON.parse(JSON.stringify(defaultCategories)); }
+
+            const savedProj = localStorage.getItem('legalProjectsData');
+            if (savedProj) { currentProjects = JSON.parse(savedProj); } 
+            else { currentProjects = JSON.parse(JSON.stringify(defaultProjects)); }
+            
+            renderDashboardCards();
+        }
+
+        // --- Render UI Danh mục & Cards ---
+        function renderDashboardCards() {
+            const container = document.getElementById('dynamicBoardsContainer');
+            container.innerHTML = '';
+            
+            const selectEl = document.getElementById('editProjectType');
+            selectEl.innerHTML = '';
+
+            categories.forEach(cat => {
+                selectEl.innerHTML += `<option value="${cat.id}">${cat.title}</option>`;
+                
+                const taskCount = currentProjects.filter(p => p.type === cat.id).length;
+
+                // Thêm icon 'Plus' vào header để thêm nhanh công việc vào nhóm đó
+                const html = `
+                <div class="category-section mb-4">
+                    <div class="category-header-wrapper">
+                        <div class="cat-title-container">
+                            <i class="fas ${cat.icon} ${cat.color} fs-6"></i>
+                            <h6 id="cat-title-${cat.id}" onclick="editCategoryName('${cat.id}')" title="Nhấn để sửa tên">${cat.title}</h6>
+                            <span class="badge-count">${taskCount}</span>
+                        </div>
+                        <div class="category-actions">
+                            <button class="btn hover-primary" onclick="openUnifiedModal('add', null, '${cat.id}')" title="Thêm công việc vào nhóm này"><i class="fas fa-plus"></i></button>
+                            <button class="btn hover-danger" onclick="deleteCategory('${cat.id}')" title="Xóa nhóm"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                    <div id="board-${cat.id}" class="row w-100 m-0 board-container" ondragover="handleDragOver(event)" ondrop="handleDropOnBoard(event, '${cat.id}')" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)">
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
+
+            currentProjects.forEach((p) => {
+                let targetBoard = document.getElementById(`board-${p.type}`);
+                if (!targetBoard && categories.length > 0) {
+                    p.type = categories[0].id; 
+                    targetBoard = document.getElementById(`board-${categories[0].id}`);
+                }
+                
+                if (targetBoard) {
+                    targetBoard.innerHTML += `
+                    <div class="col-lg-4 col-md-6 mb-3 px-2 project-drag-item" 
+                         draggable="true" data-id="${p.id}"
+                         ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" 
+                         ondrop="handleDropOnCard(event)" ondragend="handleDragEnd(event)">
+                        <div class="card h-100 project-card" onclick="openUnifiedModal('edit', ${p.id})">
+                            <button class="delete-btn" onclick="deleteProject(event, ${p.id})" title="Xóa Task">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-2 pr-4">
+                                ${getStatusBadge(p.status)}
+                                <span class="badge bg-light text-muted border fw-bold" style="font-size: 0.65rem;"><i class="far fa-calendar-alt me-1"></i> ${p.deadline || 'N/A'}</span>
+                            </div>
+                            
+                            <h6 class="project-title">${p.title}</h6>
+                            
+                            <div class="mt-auto">
+                                <div class="progress mb-2">
+                                    <div class="progress-bar ${getProgressBarColor(p.status)}" role="progressbar" style="width: ${p.progress}%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted text-truncate" style="font-size: 0.75rem; max-width: 60%;">${p.note || ''}</small>
+                                    <div class="d-flex gap-3">
+                                        <small class="text-muted fw-bold" style="font-size: 0.75rem;"><i class="fas fa-list-check me-1"></i>${p.checklist ? p.checklist.filter(i=>i.isDone).length : 0}/${p.checklist ? p.checklist.length : 0}</small>
+                                        <small class="fw-bold text-dark" style="font-size: 0.75rem;">${p.progress}%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            categories.forEach(cat => {
+                const b = document.getElementById(`board-${cat.id}`);
+                if (b && b.innerHTML.trim() === '') {
+                    b.innerHTML = `<div class="col-12"><p class="text-muted small ms-2 my-2 fst-italic">Kéo thả công việc vào đây.</p></div>`;
+                }
+            });
+        }
+
+        // --- Inline Edit Category Name ---
+        function editCategoryName(id) {
+            const titleEl = document.getElementById(`cat-title-${id}`);
+            const currentTitle = titleEl.innerText;
+            titleEl.outerHTML = `<input type="text" id="cat-input-${id}" class="form-control form-control-sm fw-bold border-primary shadow-none" value="${currentTitle}" style="max-width: 250px; font-size: 1.05rem; padding: 0.1rem 0.4rem;" onblur="saveCategoryName('${id}', this.value)" onkeypress="if(event.key === 'Enter') this.blur()">`;
+            document.getElementById(`cat-input-${id}`).focus();
+        }
+
+        function saveCategoryName(id, newTitle) {
+            if(!newTitle.trim()) return renderDashboardCards(); 
+            const cat = categories.find(c => c.id === id);
+            if(cat) {
+                cat.title = newTitle;
+                localStorage.setItem('legalCategoriesData', JSON.stringify(categories));
+                renderDashboardCards();
+            }
+        }
+
+        function addCategory() {
+            const newId = 'cat-' + Date.now();
+            categories.push({ id: newId, title: 'Tên nhóm mới', icon: 'fa-folder', color: 'text-primary' });
+            localStorage.setItem('legalCategoriesData', JSON.stringify(categories));
+            renderDashboardCards();
+        }
+        
+        function deleteCategory(id) {
+            if(confirm("Bạn có chắc muốn xóa nhóm này? Các công việc bên trong sẽ bị xóa theo.")) {
+                categories = categories.filter(c => c.id !== id);
+                currentProjects = currentProjects.filter(p => p.type !== id);
+                localStorage.setItem('legalCategoriesData', JSON.stringify(categories));
+                localStorage.setItem('legalProjectsData', JSON.stringify(currentProjects));
+                renderDashboardCards();
+            }
+        }
+
+        // --- Utils ---
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'Done': return `<span class="badge bg-success"><i class="fas fa-check me-1"></i>Done</span>`;
+                case 'In Progress': return `<span class="badge bg-primary"><i class="fas fa-spinner fa-spin me-1"></i>In Progress</span>`;
+                case 'Not Started': return `<span class="badge bg-secondary"><i class="fas fa-hourglass-start me-1"></i>Not Started</span>`;
+                case 'Risk': return `<span class="badge bg-danger"><span class="pulse-dot"></span>Risk</span>`;
+                default: return `<span class="badge bg-light text-dark">${status}</span>`;
+            }
+        }
+        function getProgressBarColor(status) {
+            switch(status) {
+                case 'Done': return 'bg-success';
+                case 'In Progress': return 'bg-primary';
+                case 'Risk': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        // --- Kéo thả (Drag & Drop) ---
+        function handleDragStart(e) { dragSrcId = e.currentTarget.getAttribute('data-id'); e.currentTarget.classList.add('dragging'); }
+        function handleDragOver(e) { e.preventDefault(); return false; }
+        function handleDragEnter(e) { e.currentTarget.classList.add('drag-over'); }
+        function handleDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+        function handleDragEnd(e) { 
+            document.querySelectorAll('.project-drag-item').forEach(item => item.classList.remove('dragging')); 
+            document.querySelectorAll('.board-container').forEach(b => b.classList.remove('drag-over'));
+        }
+
+        function handleDropOnCard(e) {
+            e.stopPropagation();
+            const targetId = e.currentTarget.getAttribute('data-id');
+            if(!dragSrcId || dragSrcId === targetId) return;
+            const dragIndex = currentProjects.findIndex(p => p.id == dragSrcId);
+            const targetIndex = currentProjects.findIndex(p => p.id == targetId);
+            if (dragIndex > -1 && targetIndex > -1) {
+                currentProjects[dragIndex].type = currentProjects[targetIndex].type;
+                const draggedItem = currentProjects.splice(dragIndex, 1)[0];
+                const newTargetIndex = currentProjects.findIndex(p => p.id == targetId);
+                currentProjects.splice(dragIndex < targetIndex ? newTargetIndex + 1 : newTargetIndex, 0, draggedItem);
+                localStorage.setItem('legalProjectsData', JSON.stringify(currentProjects));
+                renderDashboardCards();
+            }
+        }
+
+        function handleDropOnBoard(e, catId) {
+            e.preventDefault(); e.currentTarget.classList.remove('drag-over');
+            if(dragSrcId) {
+                const dragIndex = currentProjects.findIndex(p => p.id == dragSrcId);
+                if(dragIndex > -1) {
+                    currentProjects[dragIndex].type = catId;
+                    localStorage.setItem('legalProjectsData', JSON.stringify(currentProjects));
+                    renderDashboardCards();
+                }
+            }
+        }
+
+        // --- Task Modal & Logic ---
+        function deleteProject(e, id) {
+            e.stopPropagation(); 
+            if(confirm("Xóa thẻ công việc này?")) {
+                currentProjects = currentProjects.filter(p => p.id !== id);
+                localStorage.setItem('legalProjectsData', JSON.stringify(currentProjects));
+                renderDashboardCards();
+            }
+        }
+
+        // Cập nhật tham số defaultCatId để nhận diện việc thêm task cho nhóm cụ thể
+        function openUnifiedModal(actionType, id = null, defaultCatId = null) {
+            if (categories.length === 0) { alert("Cần có ít nhất 1 nhóm danh mục!"); return; }
+            
+            const typeInput = document.getElementById('modalActionType');
+            const idInput = document.getElementById('editProjectId');
+            const detailSection = document.getElementById('unifiedDetailSection');
+            const noticeSection = document.getElementById('unifiedNewTaskNotice');
+            
+            if (actionType === 'add') {
+                document.getElementById('unifiedModalLabel').innerText = 'Thêm Công việc mới';
+                typeInput.value = 'add'; idInput.value = ''; currentDetailTaskId = null;
+                
+                document.getElementById('editProjectName').value = '';
+                // Nếu bấm từ icon '+' của nhóm nào thì tự động gán vào nhóm đó
+                document.getElementById('editProjectType').value = defaultCatId || categories[0].id;
+                document.getElementById('editProjectDeadline').value = '';
+                document.getElementById('editProjectStatus').value = 'Not Started';
+                document.getElementById('editProjectProgress').value = 0;
+                document.getElementById('progressValDisplay').innerText = '0%';
+                document.getElementById('editProjectNote').value = '';
+                
+                detailSection.style.display = 'none'; noticeSection.style.display = 'flex';
+            } else if (actionType === 'edit') {
+                const proj = currentProjects.find(p => p.id === id);
+                if (!proj) return;
+                
+                document.getElementById('unifiedModalLabel').innerText = 'Chi tiết Công việc';
+                typeInput.value = 'edit'; idInput.value = proj.id; currentDetailTaskId = proj.id;
+                
+                document.getElementById('editProjectName').value = proj.title;
+                document.getElementById('editProjectType').value = proj.type;
+                document.getElementById('editProjectDeadline').value = proj.deadline || '';
+                document.getElementById('editProjectStatus').value = proj.status;
+                document.getElementById('editProjectProgress').value = proj.progress;
+                document.getElementById('progressValDisplay').innerText = proj.progress + '%';
+                document.getElementById('editProjectNote').value = proj.note || '';
+                document.getElementById('detailTaskNotesInput').value = proj.detailNotes || '';
+                
+                if(!proj.checklist) proj.checklist = [];
+                renderChecklist(proj);
+                
+                detailSection.style.display = 'flex'; noticeSection.style.display = 'none';
+            }
+            unifiedModal.show();
+        }
+
+        document.getElementById('editProjectProgress').addEventListener('input', function(e) {
+            document.getElementById('progressValDisplay').innerText = e.target.value + '%';
+            let st = document.getElementById('editProjectStatus').value;
+            if(st !== 'Done') { document.getElementById('editProjectNote').value = `Progress: ~${e.target.value}%`; }
+            else { document.getElementById('editProjectNote').value = 'Done'; }
+        });
+
+        function saveUnifiedProjectData() {
+            const action = document.getElementById('modalActionType').value;
+            const title = document.getElementById('editProjectName').value;
+            if(!title.trim()) { alert("Vui lòng nhập tên công việc!"); return; }
+
+            const pType = document.getElementById('editProjectType').value;
+
+            if(action === 'add') {
+                const newId = currentProjects.length > 0 ? Math.max(...currentProjects.map(p => p.id)) + 1 : 1;
+                const newProj = {
+                    id: newId, type: pType, title: title,
+                    deadline: document.getElementById('editProjectDeadline').value,
+                    status: document.getElementById('editProjectStatus').value,
+                    progress: document.getElementById('editProjectProgress').value,
+                    note: document.getElementById('editProjectNote').value,
+                    detailNotes: "", icon: "fa-tasks", checklist: []
+                };
+                currentProjects.push(newProj);
+            } else {
+                const id = parseInt(document.getElementById('editProjectId').value);
+                const p = currentProjects.find(p => p.id === id);
+                if(p) {
+                    p.type = pType; p.title = title;
+                    p.deadline = document.getElementById('editProjectDeadline').value;
+                    p.status = document.getElementById('editProjectStatus').value;
+                    p.progress = document.getElementById('editProjectProgress').value;
+                    p.note = document.getElementById('editProjectNote').value;
+                    p.detailNotes = document.getElementById('detailTaskNotesInput').value;
+                }
+            }
+            
+            localStorage.setItem('legalProjectsData', JSON.stringify(currentProjects));
+            renderDashboardCards();
+            unifiedModal.hide();
+        }
+
+        // --- Checklist Logic ---
+        function updateTaskNotes() { const p = currentProjects.find(p => p.id === currentDetailTaskId); if(p) p.detailNotes = document.getElementById('detailTaskNotesInput').value; }
+        function renderChecklist(proj) {
+            const container = document.getElementById('checklistContainer'); container.innerHTML = '';
+            let doneCount = 0;
+            proj.checklist.forEach((item, index) => {
+                if(item.isDone) doneCount++;
+                container.innerHTML += `
+                <div class="checklist-item px-2 py-1 ${item.isDone ? 'checklist-done' : ''} d-flex justify-content-between align-items-center">
+                    <div class="form-check m-0 d-flex align-items-center w-100">
+                        <input class="form-check-input mt-0 me-2 cursor-pointer shadow-none border-secondary" type="checkbox" ${item.isDone ? 'checked' : ''} onchange="toggleChecklist(${proj.id}, ${index}, this.checked)">
+                        <input type="text" class="form-control form-control-sm border-0 bg-transparent check-label fw-medium shadow-none py-0 px-1" value="${item.text}" onchange="editChecklistText(${proj.id}, ${index}, this.value)">
+                    </div>
+                    <button class="btn btn-sm text-muted hover-danger p-1 border-0 bg-transparent" onclick="deleteChecklistItem(${proj.id}, ${index})"><i class="fas fa-times"></i></button>
+                </div>`;
+            });
+            const total = proj.checklist.length;
+            const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
+            document.getElementById('checklistProgress').innerText = `${doneCount}/${total}`;
+            document.getElementById('checklistProgressBar').style.width = `${pct}%`;
+        }
+
+        function addChecklistItem() {
+            const input = document.getElementById('newChecklistInput'); const text = input.value.trim();
+            if(!text) return;
+            const p = currentProjects.find(p => p.id === currentDetailTaskId);
+            if(p) { p.checklist.push({text: text, isDone: false}); renderChecklist(p); input.value = ''; }
+        }
+        function editChecklistText(id, i, txt) { const p = currentProjects.find(p => p.id === id); if(p && p.checklist[i]) p.checklist[i].text = txt; }
+        function toggleChecklist(id, i, checked) { const p = currentProjects.find(p => p.id === id); if(p && p.checklist[i]) { p.checklist[i].isDone = checked; renderChecklist(p); } }
+        function deleteChecklistItem(id, i) { const p = currentProjects.find(p => p.id === id); if(p) { p.checklist.splice(i, 1); renderChecklist(p); } }
+        document.getElementById('unifiedTaskModal').addEventListener('hidden.bs.modal', function () { localStorage.setItem('legalProjectsData', JSON.stringify(currentProjects)); renderDashboardCards(); });
+
+        // --- Logic Biểu đồ & Dữ liệu Excel ---
+        const modernColors = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#64748b', '#f43f5e'];
+        let initialData = [];
+        let bucketChartInst = null, requestorChartInst = null, picChartInst = null, tasksTableInst = null;
+
+        function extractMonthYear(dateStr) {
+            if (!dateStr) return ""; let str = String(dateStr).trim();
+            if (str.match(/^\d{4}-\d{2}/)) return str.substring(0, 7);
+            let d = new Date(str); if (!isNaN(d.getTime())) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
+            return str;
+        }
+        
+        function getBadgeColor(text) {
+            if (!text) return { bg: '#f1f5f9', text: '#475569' };
+            const palettes = [{ bg: '#e0e7ff', text: '#3730a3' }, { bg: '#d1fae5', text: '#065f46' }, { bg: '#f3e8ff', text: '#6b21a8' }, { bg: '#ffedd5', text: '#9a3412' }, { bg: '#fce7f3', text: '#9d174d' }, { bg: '#cffafe', text: '#155e75' }];
+            let hash = 0; for (let i = 0; i < text.length; i++) hash = text.charCodeAt(i) + ((hash << 5) - hash);
+            return palettes[Math.abs(hash) % palettes.length];
+        }
+
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function updateDashboard(taskData) {
+            const total = taskData.length; let completed = 0, lateRisk = 0;
+            taskData.forEach(d => {
+                const progress = String(d.Progress || '').trim(); const sla = String(d.SLA || '').trim();
+                if (progress === '100' || progress === '100.0' || d['Completed date']) completed++;
+                if (sla.toLowerCase().includes('late') || sla.toLowerCase().includes('risk')) lateRisk++;
+                d._CompletedMonth = extractMonthYear(d['Completed date']);
+            });
+
+            animateValue(document.getElementById('totalTasks'), 0, total, 800);
+            animateValue(document.getElementById('completedTasks'), 0, completed, 800);
+            animateValue(document.getElementById('lateTasks'), 0, lateRisk, 800);
+            
+            const buckets = {}, requestors = {}, pics = {}; const months = new Set();
+            taskData.forEach(d => {
+                if (d.Bucket) buckets[d.Bucket] = (buckets[d.Bucket] || 0) + 1;
+                if (d.Requestor) requestors[d.Requestor] = (requestors[d.Requestor] || 0) + 1;
+                if (d.PIC) pics[d.PIC] = (pics[d.PIC] || 0) + 1;
+                if (d._CompletedMonth) months.add(d._CompletedMonth);
+            });
+
+            populateSelect('filterBucket', Object.keys(buckets).sort());
+            populateSelect('filterPIC', Object.keys(pics).sort());
+            populateSelect('filterReq', Object.keys(requestors).sort());
+            populateSelect('filterMonth', Array.from(months).sort((a,b) => b.localeCompare(a)));
+
+            Chart.defaults.font.family = "'Be Vietnam Pro', sans-serif"; Chart.defaults.font.size = 10; Chart.defaults.color = "#64748b";
+
+            if(bucketChartInst) bucketChartInst.destroy();
+            bucketChartInst = new Chart(document.getElementById('bucketChart').getContext('2d'), {
+                type: 'doughnut', plugins: [ChartDataLabels],
+                data: { labels: Object.keys(buckets), datasets: [{ data: Object.values(buckets), backgroundColor: modernColors, borderWidth: 2, borderColor: '#ffffff' }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10, padding: 8 } }, datalabels: { color: '#fff', font: { weight: 'bold' }, formatter: (v, c) => { let s = c.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); return s > 0 ? (v*100/s).toFixed(0)+"%" : ""; } } }, cutout: '70%' }
+            });
+
+            // Sắp xếp dữ liệu Requestor từ cao xuống thấp
+            const sortedReq = Object.entries(requestors).sort((a, b) => b[1] - a[1]);
+            const reqLabels = sortedReq.map(i => i[0]);
+            const reqData = sortedReq.map(i => i[1]);
+
+            if(requestorChartInst) requestorChartInst.destroy();
+            requestorChartInst = new Chart(document.getElementById('requestorChart').getContext('2d'), {
+                type: 'bar', plugins: [ChartDataLabels],
+                data: { labels: reqLabels, datasets: [{ data: reqData, backgroundColor: '#4f46e5', borderRadius: 4 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#4f46e5', font: { weight: 'bold' } } }, scales: { y: { beginAtZero: true, border: {display: false}, grid: { color: '#f1f5f9' }, grace: '10%' }, x: { grid: { display: false }, border: {display: false} } } }
+            });
+
+            // Sắp xếp dữ liệu PIC từ cao xuống thấp
+            const sortedPic = Object.entries(pics).sort((a, b) => b[1] - a[1]);
+            const picLabels = sortedPic.map(i => i[0]);
+            const picData = sortedPic.map(i => i[1]);
+
+            if(picChartInst) picChartInst.destroy();
+            picChartInst = new Chart(document.getElementById('picChart').getContext('2d'), {
+                type: 'bar', plugins: [ChartDataLabels],
+                data: { labels: picLabels, datasets: [{ data: picData, backgroundColor: '#10b981', borderRadius: 4 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', color: '#10b981', font: { weight: 'bold' } } }, scales: { y: { beginAtZero: true, border: {display: false}, grid: { color: '#f1f5f9' }, grace: '10%' }, x: { grid: { display: false }, border: {display: false} } } }
+            });
+
+            if (tasksTableInst) { tasksTableInst.clear(); tasksTableInst.rows.add(taskData); tasksTableInst.draw(); } 
+            else {
+                tasksTableInst = $('#tasksTable').DataTable({
+                    data: taskData,
+                    columns: [
+                        { data: '#', render: d => `<span class="text-muted fw-bold">${d}</span>` },
+                        { data: 'Task Name', defaultContent: '', render: d => `<span class="fw-bold text-dark">${d}</span>` },
+                        { data: 'Bucket', defaultContent: '', render: d => { if (!d) return ''; const c = getBadgeColor(d); return `<span class="badge" style="background-color: ${c.bg}; color: ${c.text}; border: 1px solid rgba(0,0,0,0.05);">${d}</span>`; } },
+                        { data: 'PIC', defaultContent: '', render: d => `<span class="fw-bold text-primary">${d}</span>` }, 
+                        { data: 'Requestor', defaultContent: '' },
+                        { data: 'Start date', defaultContent: '', className: 'text-center text-muted', render: d => d ? d : '-' }, 
+                        { data: 'Due date', defaultContent: '', className: 'text-center text-muted', render: d => d ? d : '-' }, 
+                        { data: 'Completed date', defaultContent: '', className: 'text-center text-muted', render: d => d ? d : '-' },
+                        { data: 'SLA', defaultContent: '', className: 'text-center', render: d => { 
+                            if (!d) return '-'; 
+                            let bg = 'f8fafc', text = '475569', border = 'cbd5e1', val = String(d).toLowerCase(), icon = ''; 
+                            if(val.includes('on schedule') || val.includes('done')) { bg = 'ecfdf5'; text = '059669'; border = 'a7f3d0'; } 
+                            else if(val.includes('late')) { bg = 'fef2f2'; text = 'dc2626'; border = 'fecaca'; icon = '<span class="pulse-dot"></span>'; } 
+                            else if(val.includes('risk')) { bg = 'fffbeb'; text = 'd97706'; border = 'fde68a'; icon = '<span class="pulse-dot"></span>'; } 
+                            return `<span class="badge" style="background-color: ${bg}; color: #${text}; border: 1px solid #${border};">${icon}${d}</span>`; 
+                        } }
+                    ],
+                    order: [[0, 'desc']], pageLength: 10,
+                    language: { search: "_INPUT_", searchPlaceholder: "Search records...", lengthMenu: "Show _MENU_", info: "Showing <b class='text-dark'>_START_</b> to <b class='text-dark'>_END_</b> of _TOTAL_", zeroRecords: "No records found", paginate: { next: "Next", previous: "Prev" } },
+                    dom: '<"row align-items-center mb-3"<"col-md-6"l><"col-md-6 d-flex justify-content-end"f>>rt<"row align-items-center mt-3"<"col-md-6 text-muted"i><"col-md-6 d-flex justify-content-end"p>>'
+                });
+                $('.dataTables_filter input').addClass('form-control form-control-sm').css({'width': '220px'});
+            }
+        }
+
+        function populateSelect(id, values) { const select = document.getElementById(id); const firstOpt = select.options[0]; select.innerHTML = ''; select.appendChild(firstOpt); values.forEach(val => { if(val) { const opt = document.createElement('option'); opt.value = val; opt.textContent = val; select.appendChild(opt); } }); }
+
+        $(document).ready(function() {
+            loadData(); updateDashboard(initialData);
+
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+                let fBucket = $('#filterBucket').val(), fPIC = $('#filterPIC').val(), fReq = $('#filterReq').val(), fMonth = $('#filterMonth').val(), fStart = $('#filterStartDate').val(), fEnd = $('#filterEndDate').val();
+                let mSel = (!fBucket || rowData.Bucket === fBucket) && (!fPIC || rowData.PIC === fPIC) && (!fReq || rowData.Requestor === fReq) && (!fMonth || rowData._CompletedMonth === fMonth);
+                let mDate = true;
+                if (fStart || fEnd) {
+                    let dStr = rowData['Completed date'];
+                    if (!dStr) mDate = false; else {
+                        let rDate = new Date(dStr);
+                        if (!isNaN(rDate.getTime())) { 
+                            rDate.setHours(0,0,0,0); 
+                            if (fStart) { let sDate = new Date(fStart); sDate.setHours(0,0,0,0); if (rDate < sDate) mDate = false; } 
+                            if (fEnd) { let eDate = new Date(fEnd); eDate.setHours(0,0,0,0); if (rDate > eDate) mDate = false; } 
+                        } else mDate = false;
+                    }
+                }
+                return mSel && mDate;
+            });
+
+            $('.dt-filter').on('change', () => { if(tasksTableInst) tasksTableInst.draw(); });
+            $('#resetFiltersBtn').on('click', () => { $('.dt-filter').val(''); if(tasksTableInst) { tasksTableInst.search('').columns().search(''); tasksTableInst.draw(); } });
+
+            document.getElementById('fileUpload').addEventListener('change', function(e) {
+                const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array', raw: false, dateNF: 'yyyy-mm-dd' });
+                    const excelData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "", raw: false });
+                    excelData.forEach((row, idx) => { if(!row['#']) row['#'] = idx + 1; });
+                    updateDashboard(excelData); 
+                    
+                    const toastMsg = document.createElement('div');
+                    toastMsg.innerHTML = `<div style="position: fixed; top: 20px; right: 20px; background: var(--success); color: white; padding: 12px 20px; border-radius: 8px; box-shadow: var(--shadow-md); z-index: 9999; font-weight: 600; display: flex; align-items: center; font-size: 0.85rem; animation: fadeUp 0.3s ease-out;"><i class="fas fa-check-circle me-2 fs-5"></i> Cập nhật thành công ${excelData.length} bản ghi!</div>`;
+                    document.body.appendChild(toastMsg);
+                    setTimeout(() => { toastMsg.style.opacity = '0'; toastMsg.style.transition = 'opacity 0.5s'; setTimeout(() => toastMsg.remove(), 500); }, 3000);
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        });
+    </script>
+</body>
+</html>
